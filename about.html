@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>giga.cat</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+</head>
+<body>
+	<header class="p-2 bg-dark text-white">
+		<div class="container">
+			<div class="d-flex flex-wrap align-items-center justify-content-center">
+				<ul class="nav col-auto me-auto justify-content-center">
+					<li><a href="index.html" class="nav-link px-2 text-white">Home</a></li>
+					<li><a href="#" class="nav-link px-2 text-secondary">About</a></li>
+					<li><a href="development.html" class="nav-link px-2 text-white">Development</a></li>
+				</ul>
+				<div class="text-end">
+					<a href="share.html"><button type="button" class="btn btn-primary">Share your dump</button></a>
+				</div>
+			</div>
+		</div>
+	</header>
+
+	<div class="container">
+		<div style="height: 100px;"></div>
+
+		<div class="row justify-content-center">
+			<div class="col-auto">
+				<a href="/"><img src="img/logo.png" class="img-fluid" alt="..." style="width: 360px;"></a>
+			</div>
+		</div>
+
+		<div style="height: 64px;"></div>
+
+		<div class="row">
+			<div class="col-md-2 col-sm-0"></div>
+			<div class="col-md-8 col-sm-12">
+
+
+				<h2>About</h2>
+				<p>
+					<strong>gigacat</strong> is a standalone web application designed to use IPFS
+					peer-to-peer network to retrieve torrent dumps, formatted as CSV files, and to build a local database
+					from the dump, letting the user search through it using text search.
+				</p>
+				<p>
+					This website, that serves a copy of gigacat, <strong>does neither host data nor metadata</strong>
+					about torrent files, because everything is downloaded locally by the browser from IPFS
+					network at the moment of visit.
+				</p>
+
+				<br>
+
+				<h2>Motivations</h2>
+				<p>
+					While entertainment and media corporations are making huge profits every year,
+					like NBCUniversal (33.97B*), Disney Pictures (11.05B*), WarnerMedia (9.86B*), Sony Pictures (8.24B*),
+					ViacomCBS (3.30B*) and Netflix (1.86B*), with the excuse of copyright infrangement and the
+					<em>"consequent lost of incomes"</em> these corporations are issuing DMCA notices trying to shut down
+					legal file sharing websites and torrent search engines, intimidating developers and ISP with legal actions against
+					them, making Internet a controlled space subject to censorship
+					(more info on <a href="https://torrentfreak.com/category/anti-piracy/" target="_blank">TorrentFreak</a>).
+				</p>
+				<p>
+					One of the best way to survive from this unfair behavior is to decentralize not only data,
+					but even metadata, the pieces of data pointing to the actual content. In this way, the shutdown
+					of a website is useless like a shutdown of a seeder in a torrent network.
+					
+					This application was build with this goal in mind.
+				</p>
+
+				<br>
+
+				<h2>Limitations</h2>
+
+				<h4>Dump size / Time / Usability</h4>
+
+				<p>
+					One of the main downside of this approach is the loading time.
+					Populating a database with hundred thousands records on a browser is an intensive work. After some
+					tests I can state that a <strong>15MB</strong> CSV file containing <strong>~100,000 lines</strong>
+					of records needs <strong>7s</strong> to be loaded locally on database using a medium/low end computer.
+					Fetching the dump from IPFS network requires circa 2s after the CID is spreaded across 2/3 nodes.
+				</p>
+
+				<h4>CIDs are mutable</h4>
+
+				<p>
+					Every little change in the dump (eg. a new line for a torrent) means a new CID (hash) to be published. The implementation of
+					IPNS on gigacat is still under development, though it would make the whole experience less user friendly
+					because it requires the user to store the node private key to publish under the same name,
+					and, at the moment, IPNS is not fully decentralized but depends on a bunch of public servers.
+				</p>
+		
+				<h4>Decentralization</h4>
+
+				<p>
+					Pure decentralization (DHT)
+					<a href="https://github.com/ipfs/js-ipfs/blob/master/docs/BROWSERS.md#limitations-of-the-browser-context" target="_blank">is still under development</a>
+					for the JavaScript library of IPFS (JS-IPFS).
+				</p>
+
+				<p class="p-3">
+					<small>*Net Income 2019</small>
+				</p>
+			</div>
+			<div class="col-md-2 col-sm-0"></div>
+		</div>
+	</div>
+
+	<div style="height: 80px;"></div>
+
+	<div class="container">
+		<footer class="py-3 my-4">
+			<ul class="nav justify-content-center border-bottom pb-3 mb-3">
+				<!-- <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Home</a></li>
+				<li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Features</a></li>
+				<li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Pricing</a></li>
+				<li class="nav-item"><a href="#" class="nav-link px-2 text-muted">FAQs</a></li>
+				<li class="nav-item"><a href="#" class="nav-link px-2 text-muted">About</a></li> -->
+			</ul>
+			<p class="text-center text-muted"><small>By: etagate</small></p>
+			<p class="text-center text-muted"><small>Contact: etagate '4t' protonmail 'd0t' com</small></p>
+			<!-- <p class="text-center text-muted"><small>Clone this on <a href="https://github.com/etagate" target="_blank">Github</a></small></p> -->
+		</footer>
+	</div>
+</body>
+</html>
