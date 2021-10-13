@@ -1,78 +1,92 @@
 importScripts('https://cdn.jsdelivr.net/npm/ipfs/dist/index.min.js')
-importScripts('https://cdn.jsdelivr.net/gh/nextapps-de/flexsearch@0.7.2/dist/flexsearch.bundle.js')
-importScripts('bundle.js')
-importScripts('ipfs.js')
-importScripts('database.js')
+importScripts('https://cdn.jsdelivr.net/npm/sql.js@1.6.2/dist/sql-wasm.min.js')
 
-const parse = require('csv-parse')
-
-/* Worker */
 
 onmessage = function(e) {
-	let message = e.data
-	switch (message[0]) { // command
-	case 'list_cid':
-		let listCid = message[1]
-		cids = [listCid]
-		createDatabaseFromList(listCid)
-		break
-	case 'dir_cid':
-		let directoryCid = message[1]
-		createDatabaseFromDirectory(directoryCid)
-		break
-	case 'search':
-		search(e.data[1], e.data[2])
-		break
-	case 'search_all':
-		const indexes = []
-		for (let i = 0; i < cids.length; i++) indexes.push(i)
-		search(e.data[1], indexes)
-		break
-	default:
-		console.log('error: unknown message')
+	switch (e.data[0]) {
+		case 'start':
+			start()
+			break
+		case 'search':
+			search(e.data[1]).then(result => postMessage(['result', result]))
+			break
+		default:
+			console.log('unrecognized command', e.data[0])
 	}
 }
 
-/* DB */
+function start() { /* do nothing */ }
 
-const IpfsNodeInstance = new IpfsNode()
-Object.freeze(IpfsNodeInstance)
+let dbPromise = new Promise(async (resolve, reject) => {
+	try {
+		const [SQL, buffer] = await Promise.all([loadDbModule(), fetchDbFromIPFS()])
+		const database = new SQL.Database(buffer)
+		resolve(database)
+	} catch(e) {
+		reject(e)
+	}
+})
 
+// let dbPromise
+// async function start() {
+// 	try {
+// 		const [SQL, buffer] = await Promise.all([loadDbModule(), fetchDbFromIPFS()])
+// 		dbPromise = new Promise((resolve, reject) => {
+// 			const database = new SQL.Database(buffer)
+// 			resolve(database)
+// 		})
+// 	} catch(e) {
+// 		console.error('error while loading essential modules:', e)
+// 		return
+// 	}
+// }
 
-let cids
-async function createDatabaseFromDirectory(cid) {
-	cids = await IpfsNodeInstance.getCidsFromDirectory(cid)
-
-	await Promise.all(cids.map(cid => {
-		createDatabaseFromList(cid)
-	}))
+function loadDbModule() {
+	return initSqlJs({
+		locateFile: file => 'https://cdn.jsdelivr.net/npm/sql.js@1.6.2/dist/sql-wasm.wasm'
+	})
 }
 
-const dbs = []
-async function createDatabaseFromList(cid) {
-	const len = dbs.push(new Database(cid))
-	const db = dbs[len-1]
-	
-	postMessage(['status', 'List downloading'])
-	const stream = await IpfsNodeInstance.getBuffer(cid)
+async function fetchDbFromIPFS() {
+	const node = await Ipfs.create()
+	const stream = await node.cat('Qmd3ecxQSndUdBA1rS3HG62ZCR2f8L8ybneFS95WNJJroa')
 
-	postMessage(['status', 'Populating database'])
-	await db.populateFromStream(stream).
-		then(async _ => {
-			postMessage(['status', 'Completed'])
-			postMessage(['dbinfo', await db.size(), await db.lines()])
+	const data = new Uint8Array(12152832)
+	let i = 0
+	for await (const chunk of stream) {
+		chunk.forEach(byte => {
+			data[i] = byte
+			i += 1
 		})
+		postMessage(['progress', ((i / 12152832) * 100).toFixed(0)])
+	}
+
+	return data
 }
 
-async function search(input, databases) {
-	const results = []
-
-	await Promise.all(databases.map(async i => {
-		let db = dbs[i]
-		await db.search(input).
-			then(response => response.forEach(e => results.push(e))).
-			then(_ => postMessage(['result', results]))
-	}))
-
-	return results
+async function search(input) {
+	input = input.trim()
+	return await dbPromise.
+		then(db => {
+			const result1 = db.exec(
+				'SELECT rowid, * \
+				FROM torrents \
+				WHERE title LIKE \'' + input + '%\' LIMIT 20')
+			
+			const result2 = db.exec(
+				'SELECT rowid, * \
+				FROM torrents \
+				WHERE title LIKE \'% ' + input + '%\' LIMIT 20')
+			
+			let result = []
+			if (result1.length > 0) {
+				result = [...result, ...result1[0].values]
+			}
+			if (result2.length > 0) {
+				result = [...result, ...result2[0].values]
+			}
+			return result
+		}, reason => {
+			console.log('error during the boot process:', reason)
+		})
 }
